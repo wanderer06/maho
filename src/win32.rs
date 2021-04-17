@@ -1,6 +1,7 @@
 // We should keep the naming convention as the original code
-#![allow(non_camel_case_types)]
 #![allow(dead_code)]
+#![allow(non_camel_case_types)]
+#![allow(non_snake_case)]
 
 pub type HBRUSH = *mut ::std::os::raw::c_void;
 pub type HINSTANCE = *mut ::std::os::raw::c_void;
@@ -37,7 +38,6 @@ extern "C" {
     pub fn GetModuleHandleW(lpModuleName: LPCWSTR) -> HMODULE;
 }
 
-#[allow(non_snake_case)]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct tagWNDCLASSW {

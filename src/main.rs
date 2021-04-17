@@ -22,7 +22,7 @@ fn main() {
     }
 }
 
-fn str_to_lpcwstr(text: &'static str) -> *const u16 {
+fn str_to_lpcwstr(text: &'static str) -> win32::LPCWSTR {
     text.encode_utf16().collect::<Vec<u16>>().as_ptr()
 }
 
