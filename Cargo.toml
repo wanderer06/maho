@@ -1,0 +1,8 @@
+[package]
+name = "maho"
+version = "0.1.0"
+authors = ["wanderer06 <georgica_fara_de_frica@yahoo.com>"]
+edition = "2018"
+
+[dependencies]
+libc = "0.2.93"
