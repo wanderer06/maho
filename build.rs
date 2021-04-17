@@ -1,15 +1,20 @@
 fn main() {
     ::windows::build!(
         Windows::Win32::Gdi::HBRUSH,
-        Windows::Win32::MenusAndResources::HCURSOR,
-        Windows::Win32::MenusAndResources::HICON,
-        Windows::Win32::SystemServices::GetModuleHandleW,
-        Windows::Win32::SystemServices::HINSTANCE,
-        Windows::Win32::WindowsAndMessaging::DefWindowProcW,
-        Windows::Win32::WindowsAndMessaging::LPARAM,
-        Windows::Win32::WindowsAndMessaging::RegisterClassW,
-        Windows::Win32::WindowsAndMessaging::WNDCLASSW,
-        Windows::Win32::WindowsAndMessaging::WNDCLASS_STYLES,
-        Windows::Win32::WindowsAndMessaging::WPARAM,
+        Windows::Win32::MenusAndResources::{ HCURSOR, HICON },
+        Windows::Win32::SystemServices::{ GetModuleHandleW, HINSTANCE },
+        Windows::Win32::WindowsAndMessaging::{
+            CW_USEDEFAULT,
+            CreateWindowExW,
+            DefWindowProcW,
+            LPARAM,
+            RegisterClassW,
+            ShowWindow,
+            WINDOW_EX_STYLE,
+            WINDOW_STYLE,
+            WNDCLASSW,
+            WNDCLASS_STYLES,
+            WPARAM,
+        },
     );
 }

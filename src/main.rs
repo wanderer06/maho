@@ -7,9 +7,11 @@ use bindings::Windows::Win32::{SystemServices, WindowsAndMessaging, MenusAndReso
 fn main() {
     unsafe {
         // obtain instance
+        const CLASS_NAME_STR: &str = "Mahō"; 
+
         let h_instance = SystemServices::GetModuleHandleW(SystemServices::PWSTR::NULL);
         let h_instance = SystemServices::HINSTANCE(h_instance);
-        let class_name = SystemServices::PWSTR::from("Hello world?");
+        let class_name = SystemServices::PWSTR::from(CLASS_NAME_STR);
         
         // create window class
         let wnd_class = WindowsAndMessaging::WNDCLASSW {
@@ -29,8 +31,25 @@ fn main() {
         let id = WindowsAndMessaging::RegisterClassW(&wnd_class);
 
         // create window
+        let hwnd = WindowsAndMessaging::CreateWindowExW(
+            WindowsAndMessaging::WINDOW_EX_STYLE(0), 
+            CLASS_NAME_STR, 
+            CLASS_NAME_STR, 
+            WindowsAndMessaging::WINDOW_STYLE::WS_OVERLAPPEDWINDOW, 
+            WindowsAndMessaging::CW_USEDEFAULT,
+            WindowsAndMessaging::CW_USEDEFAULT,
+            WindowsAndMessaging::CW_USEDEFAULT,
+            WindowsAndMessaging::CW_USEDEFAULT,
+            WindowsAndMessaging::HWND::NULL,
+            MenusAndResources::HMENU::NULL, 
+            h_instance, 
+            ::std::ptr::null_mut()
+        );
 
         println!("And again, this is your window class: {:?}, id is {}", wnd_class, id);
+        WindowsAndMessaging::ShowWindow(hwnd, WindowsAndMessaging::SHOW_WINDOW_CMD::SW_SHOWDEFAULT);
+
+        loop {}
     }
 }
 
