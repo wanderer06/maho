@@ -4,5 +4,9 @@ version = "0.1.0"
 authors = ["wanderer06 <georgica_fara_de_frica@yahoo.com>"]
 edition = "2018"
 
+[build-dependencies]
+windows = "0.8.0"
+
 [dependencies]
 libc = "0.2.93"
+windows = "0.8.0"

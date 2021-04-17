@@ -1,34 +1,49 @@
-mod win32;
+mod bindings {
+    ::windows::include_bindings!();
+}
+
+use bindings::Windows::Win32::{SystemServices, WindowsAndMessaging, MenusAndResources, Gdi};
 
 fn main() {
     unsafe {
-        let h_instance = win32::GetModuleHandleW(std::ptr::null_mut());
-        let class_name = str_to_lpcwstr("Hello world?");
-
-        let wnd_class = win32::tagWNDCLASSW {
-            style: 0,
-            lpfnWndProc: None,
+        // obtain instance
+        let h_instance = SystemServices::GetModuleHandleW(SystemServices::PWSTR::NULL);
+        let h_instance = SystemServices::HINSTANCE(h_instance);
+        let class_name = SystemServices::PWSTR::from("Hello world?");
+        
+        // create window class
+        let wnd_class = WindowsAndMessaging::WNDCLASSW {
+            style: WindowsAndMessaging::WNDCLASS_STYLES(0),
+            lpfnWndProc: Some(wnd_proc),
             cbClsExtra: 0,
             cbWndExtra: 0,
             hInstance: h_instance,
-            hIcon: std::ptr::null_mut(),
-            hCursor: std::ptr::null_mut(),
-            hbrBackground: std::ptr::null_mut(),
-            lpszMenuName: std::ptr::null_mut(),
+            hIcon: MenusAndResources::HICON::NULL,
+            hCursor: MenusAndResources::HCURSOR::NULL,
+            hbrBackground: Gdi::HBRUSH::NULL,
+            lpszMenuName: SystemServices::PWSTR::NULL,
             lpszClassName: class_name,
         };
 
-        println!("This is your window class: {:?}", wnd_class);
+        // register window class
+        let id = WindowsAndMessaging::RegisterClassW(&wnd_class);
+
+        // create window
+
+        println!("And again, this is your window class: {:?}, id is {}", wnd_class, id);
     }
 }
 
-fn str_to_lpcwstr(text: &'static str) -> win32::LPCWSTR {
-    text.encode_utf16().collect::<Vec<u16>>().as_ptr()
+#[no_mangle]
+extern "system" fn wnd_proc(hwnd: WindowsAndMessaging::HWND, msg: u32, wparam: WindowsAndMessaging::WPARAM, lparam: WindowsAndMessaging::LPARAM) -> SystemServices::LRESULT {
+    // do some stuff here to handle msg
+    unsafe { WindowsAndMessaging::DefWindowProcW(hwnd, msg, wparam, lparam) }
 }
 
-#[allow(dead_code)]
-fn str_to_lpwstr(text: &'static str) -> *mut u16 {
-    let mut lpwstr = text.encode_utf16().collect::<Vec<u16>>();
-    lpwstr.push(0);
-    lpwstr.as_mut_ptr()
+impl SystemServices::PWSTR {
+    fn from(text: &'static str) -> Self {
+        Self(text.encode_utf16().chain(::std::iter::once(0)).collect::<Vec<u16>>().as_mut_ptr())
+    }
 }
+
+
