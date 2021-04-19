@@ -2,7 +2,16 @@ mod bindings {
     ::windows::include_bindings!();
 }
 
-use bindings::Windows::Win32::{SystemServices, WindowsAndMessaging, MenusAndResources, Gdi};
+use bindings::Windows::Win32::{
+    Direct2D, 
+    DisplayDevices,
+    Gdi, 
+    MenusAndResources, 
+    SystemServices, 
+    WindowsAndMessaging, 
+};
+
+use windows::{Abi, IUnknown};
 
 fn main() {
     unsafe {
@@ -46,8 +55,29 @@ fn main() {
             ::std::ptr::null_mut()
         );
 
-        println!("And again, this is your window class: {:?}, id is {}", wnd_class, id);
+        // show created window
         WindowsAndMessaging::ShowWindow(hwnd, WindowsAndMessaging::SHOW_WINDOW_CMD::SW_SHOWDEFAULT);
+
+        // get client rect
+        let mut rect = DisplayDevices::RECT::default();
+        let client_rect = WindowsAndMessaging::GetClientRect(hwnd, &mut rect);
+        println!("This is your window rect {:?}", rect);
+
+        // create render factory, target and bitmap
+        // let mut factory: Direct2D::ID2D1Factory1 = ::std::ptr::null_mut();
+        // let options = Direct2D::D2D1_FACTORY_OPTIONS::default();
+
+        // let kkt = factory as *mut _ as *mut _;
+
+        // Direct2D::D2D1CreateFactory(
+        //     Direct2D::D2D1_FACTORY_TYPE::D2D1_FACTORY_TYPE_SINGLE_THREADED,
+        //     &Direct2D::ID2D1Factory1::IID,
+        //     &options,
+        //     factory as *mut _ as *mut _
+        // );
+
+        // let bitmap_render_target = factory.CreateHwndRenderTarget(rendertargetproperties, hwndrendertargetproperties, hwndrendertarget);
+        // let bitmap = Direct2D::ID2D1RenderTarget::CreateBitmap(size, std::ptr::null_mut(), 
 
         loop {}
     }
@@ -55,7 +85,6 @@ fn main() {
 
 #[no_mangle]
 extern "system" fn wnd_proc(hwnd: WindowsAndMessaging::HWND, msg: u32, wparam: WindowsAndMessaging::WPARAM, lparam: WindowsAndMessaging::LPARAM) -> SystemServices::LRESULT {
-    // do some stuff here to handle msg
     unsafe { WindowsAndMessaging::DefWindowProcW(hwnd, msg, wparam, lparam) }
 }
 
