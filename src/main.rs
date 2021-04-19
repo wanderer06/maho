@@ -7,7 +7,7 @@ fn main() {
         match context.get_event() {
             maho::Event::Key(key_code) => println!("Yo! you just pressed {}", key_code),
             maho::Event::Quit => break,
-            maho::Event::None => {},
+            maho::Event::None => (),
         }
     }
 
