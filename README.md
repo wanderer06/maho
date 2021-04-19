@@ -1,7 +1,10 @@
+# Sample boilerplate usage
+
+```rust
 mod maho;
 
 fn main() {
-    let context = maho::Context::create("Yolo", 800, 600);
+    let context = maho::Context::create("Hello world", 800, 600);
 
     loop {
         match context.get_event() {
@@ -13,3 +16,4 @@ fn main() {
 
     println!("Program succesful exit");
 }
+```
