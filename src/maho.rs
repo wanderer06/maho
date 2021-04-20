@@ -6,10 +6,12 @@ use bindings::Windows::Win32::{
     Direct2D, DisplayDevices, Gdi, MenusAndResources, SystemServices, WindowsAndMessaging,
 };
 
-use windows::{Abi, IUnknown};
+use windows::{Abi, Interface};
 
+#[allow(dead_code)]
 pub struct Context {
     hwnd: WindowsAndMessaging::HWND,
+    hwnd_render_target: Direct2D::ID2D1HwndRenderTarget,
 }
 
 pub enum Event {
@@ -41,7 +43,7 @@ impl Context {
             };
 
             // register window class
-            let id = WindowsAndMessaging::RegisterClassW(&wnd_class);
+            WindowsAndMessaging::RegisterClassW(&wnd_class);
 
             // create window
             let hwnd = WindowsAndMessaging::CreateWindowExW(
@@ -69,24 +71,70 @@ impl Context {
 
             // get client rect
             let mut rect = DisplayDevices::RECT::default();
-            let client_rect = WindowsAndMessaging::GetClientRect(hwnd, &mut rect);
+            WindowsAndMessaging::GetClientRect(hwnd, &mut rect);
 
-            // create render factory, target and bitmap
-            // let mut factory: Direct2D::ID2D1Factory1 = ::std::ptr::null_mut();
-            // let options = Direct2D::D2D1_FACTORY_OPTIONS::default();
+            // factory options
+            // include debug information
+            let mut options = Direct2D::D2D1_FACTORY_OPTIONS::default();
+            options.debugLevel = Direct2D::D2D1_DEBUG_LEVEL::D2D1_DEBUG_LEVEL_INFORMATION;
 
-            // let kkt = factory as *mut _ as *mut _;
+            let mut factory: Option<Direct2D::ID2D1Factory1> = None;
 
-            // Direct2D::D2D1CreateFactory(
-            //     Direct2D::D2D1_FACTORY_TYPE::D2D1_FACTORY_TYPE_SINGLE_THREADED,
-            //     &Direct2D::ID2D1Factory1::IID,
-            //     &options,
-            //     factory as *mut _ as *mut _
-            // );
+            Direct2D::D2D1CreateFactory(
+                Direct2D::D2D1_FACTORY_TYPE::D2D1_FACTORY_TYPE_SINGLE_THREADED,
+                &Direct2D::ID2D1Factory1::IID,
+                &options,
+                factory.set_abi(),
+            )
+            .unwrap();
 
-            // let bitmap_render_target = factory.CreateHwndRenderTarget(rendertargetproperties, hwndrendertargetproperties, hwndrendertarget);
-            // let bitmap = Direct2D::ID2D1RenderTarget::CreateBitmap(size, std::ptr::null_mut(),
-            Self { hwnd }
+            let size = Direct2D::D2D_SIZE_U {
+                width: (rect.right - rect.left) as u32,
+                height: (rect.bottom - rect.top) as u32,
+            };
+
+            let mut hwnd_render_target: Option<Direct2D::ID2D1HwndRenderTarget> = None;
+            let render_target_properties = Direct2D::D2D1_RENDER_TARGET_PROPERTIES::default();
+            let hwnd_render_target_properties = Direct2D::D2D1_HWND_RENDER_TARGET_PROPERTIES {
+                hwnd,
+                pixelSize: size,
+                presentOptions: Direct2D::D2D1_PRESENT_OPTIONS::default(),
+            };
+
+            factory
+                .unwrap()
+                .CreateHwndRenderTarget(
+                    &render_target_properties,
+                    &hwnd_render_target_properties,
+                    &mut hwnd_render_target,
+                )
+                .unwrap();
+
+            let hwnd_render_target = hwnd_render_target.unwrap();
+
+            // let's try drawing something
+            let clear_colour = Direct2D::D2D1_COLOR_F {
+                r: 1.0,
+                g: 0.0,
+                b: 0.0,
+                a: 1.0,
+            };
+
+            let mut tag1: u64 = 0;
+            let mut tag2: u64 = 0;
+
+            hwnd_render_target.BeginDraw();
+            hwnd_render_target.Clear(&clear_colour);
+            hwnd_render_target.EndDraw(&mut tag1, &mut tag2).unwrap();
+
+            if tag1 != 0 || tag2 != 0 {
+                println!("Possible draw error, codes: {}, {}", tag1, tag2);
+            }
+
+            Self {
+                hwnd,
+                hwnd_render_target,
+            }
         }
     }
 
