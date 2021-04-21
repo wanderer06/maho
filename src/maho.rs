@@ -6,14 +6,14 @@ use bindings::Windows::Win32::{
     Direct2D, DisplayDevices, Gdi, MenusAndResources, SystemServices, WindowsAndMessaging,
 };
 
-use windows::{Abi, IUnknown, Interface};
+use windows::{Abi, Interface};
 
 #[allow(dead_code)]
 pub struct Context {
+    brush: Option<Direct2D::ID2D1SolidColorBrush>,
     factory: Option<Direct2D::ID2D1Factory1>,
     hwnd: WindowsAndMessaging::HWND,
     hwnd_render_target: Option<Direct2D::ID2D1HwndRenderTarget>,
-    brush: Option<Direct2D::ID2D1SolidColorBrush>,
 }
 
 pub enum Event {
@@ -26,8 +26,8 @@ impl Context {
     pub fn create(title: &str, width: i32, height: i32) -> Self {
         unsafe {
             let mut context = Self {
-                factory: None,
                 brush: None,
+                factory: None,
                 hwnd: WindowsAndMessaging::HWND(0),
                 hwnd_render_target: None,
             };
@@ -186,11 +186,10 @@ impl Context {
             let hwnd_render_target = self.hwnd_render_target.as_ref().unwrap();
             let brush = self.brush.as_ref().unwrap();
 
-            // let's try drawing something
             let clear_colour = Direct2D::D2D1_COLOR_F {
-                r: 1.0,
-                g: 0.0,
-                b: 0.0,
+                r: 0.25,
+                g: 0.25,
+                b: 0.25,
                 a: 1.0,
             };
 
