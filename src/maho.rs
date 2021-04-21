@@ -120,11 +120,47 @@ impl Context {
                 a: 1.0,
             };
 
+            let brush_colour = Direct2D::D2D1_COLOR_F {
+                r: 1.0,
+                g: 0.0,
+                b: 1.0,
+                a: 1.0,
+            };
+
+            let render_target_size = hwnd_render_target.GetSize();
+            println!("Render target size: {:?}", render_target_size);
+
             let mut tag1: u64 = 0;
             let mut tag2: u64 = 0;
 
+            let fill_rect = Direct2D::D2D_RECT_F {
+                left: render_target_size.width / 2.0 - 50.0,
+                top: render_target_size.height / 2.0 - 50.0,
+                right: render_target_size.width / 2.0 + 50.0,
+                bottom: render_target_size.height / 2.0 + 50.0,
+            };
+
+            let brush_properties = Direct2D::D2D1_BRUSH_PROPERTIES {
+                opacity: 1.0,
+                transform: bindings::Windows::Foundation::Numerics::Matrix3x2::identity(),
+            };
+
+            let mut brush: Option<Direct2D::ID2D1SolidColorBrush> = None;
+            hwnd_render_target
+                .CreateSolidColorBrush(&brush_colour, &brush_properties, &mut brush)
+                .unwrap();
+                
+            let brush = brush.unwrap();
+
+            println!("Created brush {:?}", brush);
+
+            let matrix_identity = bindings::Windows::Foundation::Numerics::Matrix3x2::identity();
+
             hwnd_render_target.BeginDraw();
             hwnd_render_target.Clear(&clear_colour);
+            hwnd_render_target.SetTransform(&matrix_identity);
+            hwnd_render_target.FillRectangle(&fill_rect, &brush);
+            // hwnd_render_target.Flush(&mut tag1, &mut tag2).unwrap();
             hwnd_render_target.EndDraw(&mut tag1, &mut tag2).unwrap();
 
             if tag1 != 0 || tag2 != 0 {
@@ -168,6 +204,15 @@ impl Context {
 
         Event::None
     }
+
+    // fn handle_wnd_proc_message(
+    //     &self,
+    //     msg: u32,
+    //     wparam: WindowsAndMessaging::WPARAM,
+    //     lparam: WindowsAndMessaging::LPARAM,
+    // ) -> SystemServices::LRESULT {
+    //     println!("handling own wnd proc msg");
+    // }
 }
 
 #[no_mangle]
@@ -178,9 +223,9 @@ extern "system" fn wnd_proc(
     lparam: WindowsAndMessaging::LPARAM,
 ) -> SystemServices::LRESULT {
     unsafe {
-        match msg {
+        return match msg {
             WindowsAndMessaging::WM_PAINT => {
-                // todo bitmap rendering here
+                // self.test_render();
                 SystemServices::LRESULT(0)
             }
             WindowsAndMessaging::WM_DESTROY => {
@@ -188,8 +233,45 @@ extern "system" fn wnd_proc(
                 SystemServices::LRESULT(0)
             }
             _ => WindowsAndMessaging::DefWindowProcW(hwnd, msg, wparam, lparam),
-        }
+        };
     }
+
+    // unsafe {
+    //     // println!("entered wnd_proc, msg is {} (need {} for WM_NCCREATE)", msg, WindowsAndMessaging::WM_NCCREATE);
+    //     // this is a bit tricky
+    //     // we need to store our main struct pointer
+    //     // so we can call it later
+    //     if msg == WindowsAndMessaging::WM_CREATE {
+    //         println!("inside wm_create");
+    //         // first time the window is created
+    //         // we have all the parameters used in CreateWindowEx
+    //         // The window procedure of the new window receives this message after the window is created, but before the window becomes visible
+    //         let pointer_create_struct = lparam.0 as *const WindowsAndMessaging::CREATESTRUCTW;
+    //         println!("pointer create struct app here: {:?}", *pointer_create_struct);
+    //         let pointer_app = (*pointer_create_struct).lpCreateParams as  *mut Context;
+    //         (*pointer_app).hwnd = hwnd;
+
+    //         // change the long window pointer for the window to our own app pointer
+    //         WindowsAndMessaging::SetWindowLongW(
+    //             hwnd,
+    //             WindowsAndMessaging::WINDOW_LONG_PTR_INDEX::GWL_USERDATA,
+    //             pointer_app as i32,
+    //         );
+    //     } else {
+    //         println!("inside else wm_create");
+    //         // retrieve the app pointer
+    //         let pointer_app = WindowsAndMessaging::GetWindowLongW(
+    //             hwnd,
+    //             WindowsAndMessaging::WINDOW_LONG_PTR_INDEX::GWL_USERDATA,
+    //         ) as *mut Context;
+
+    //         // call a procedure on our app pointer
+    //         println!("calling handle proc on our class");
+    //         (*pointer_app).handle_wnd_proc_message(msg, wparam, lparam);
+    //     }
+
+    //     WindowsAndMessaging::DefWindowProcW(hwnd, msg, wparam, lparam)
+    // }
 }
 
 impl SystemServices::PWSTR {
